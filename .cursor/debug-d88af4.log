@@ -1,0 +1,8 @@
+{"sessionId":"d88af4","runId":"post-fix","hypothesisId":"verify","location":"AdminView.vue:deleteType","message":"deleteType start","data":{"roomId":1,"typeId":3,"hasToken":true},"timestamp":1774713203424}
+{"sessionId": "d88af4", "runId": "post-fix", "hypothesisId": "verify", "location": "admin.py:delete_poll_type", "message": "before delete", "data": {"room_id": 1, "type_id": 3, "options_loaded": 2}, "timestamp": 1774713203440}
+{"sessionId": "d88af4", "runId": "post-fix", "hypothesisId": "verify", "location": "admin.py:delete_poll_type", "message": "commit ok", "data": {"type_id": 3}, "timestamp": 1774713203446}
+{"sessionId":"d88af4","runId":"post-fix","hypothesisId":"verify","location":"AdminView.vue:deleteType","message":"deleteType ok","data":{"typeId":3},"timestamp":1774713203471}
+{"sessionId":"d88af4","runId":"post-fix","hypothesisId":"verify","location":"AdminView.vue:deleteType","message":"deleteType start","data":{"roomId":1,"typeId":2,"hasToken":true},"timestamp":1774713207224}
+{"sessionId": "d88af4", "runId": "post-fix", "hypothesisId": "verify", "location": "admin.py:delete_poll_type", "message": "before delete", "data": {"room_id": 1, "type_id": 2, "options_loaded": 2}, "timestamp": 1774713207237}
+{"sessionId": "d88af4", "runId": "post-fix", "hypothesisId": "verify", "location": "admin.py:delete_poll_type", "message": "commit ok", "data": {"type_id": 2}, "timestamp": 1774713207242}
+{"sessionId":"d88af4","runId":"post-fix","hypothesisId":"verify","location":"AdminView.vue:deleteType","message":"deleteType ok","data":{"typeId":2},"timestamp":1774713207259}
