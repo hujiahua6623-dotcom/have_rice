@@ -107,6 +107,13 @@ class GameEngine:
         rows = db.query(RoomMembership.user_id).filter(RoomMembership.room_id == self.room_id).all()
         return [r[0] for r in rows]
 
+    def round_voter_user_ids(self, db: Session) -> list[int]:
+        """本回合已在 DB 中落票的用户。倒计时/助力期间新进房者尚未有 RoundVote，不应参与本轮结算。"""
+        if not self.round_id:
+            return []
+        rows = db.query(RoundVote.user_id).filter(RoundVote.round_id == self.round_id).all()
+        return sorted(r[0] for r in rows)
+
     def _persist_phase(self, db: Session) -> None:
         if not self.round_id:
             return
@@ -204,7 +211,7 @@ class GameEngine:
         self._persist_phase(db)
 
     def run_computing(self, db: Session) -> str | None:
-        mids = self.member_user_ids(db)
+        mids = self.round_voter_user_ids(db)
         weights: dict[int, float] = {}
         for uid in mids:
             oid = self.selections.get(uid)
@@ -263,7 +270,7 @@ def build_round_result_payload(db: Session, engine: GameEngine) -> dict[str, Any
     """本轮结果：胜出选项、各选项得票人数、胜方昵称（与 DB 回合一致）。"""
     tid = engine.type_id
     win = engine.winning_option_id
-    mids = engine.member_user_ids(db)
+    mids = engine.round_voter_user_ids(db)
     counts: Counter[int] = Counter()
     for uid in mids:
         oid = engine.selections.get(uid)
@@ -388,10 +395,10 @@ class RoomRuntime:
             db = SessionLocal()
             try:
                 e = self.engine
-                e.set_phase(db, GamePhase.computing)
                 err = e.run_computing(db)
                 if err:
                     return err, [], None, 0.0
+                e.set_phase(db, GamePhase.computing)
                 steps = e.marquee_steps
                 win = e.winning_option_id
                 n_sec = min(
@@ -404,7 +411,7 @@ class RoomRuntime:
                                 if e.assist_clicks.get(u, 0) == 0
                                 else min(e.assist_clicks[u], settings.assist_cap_per_user)
                             )
-                            for u in e.member_user_ids(db)
+                            for u in e.round_voter_user_ids(db)
                         ),
                     ),
                 )
@@ -435,7 +442,7 @@ class RoomRuntime:
                     .order_by(PollOption.sort_order, PollOption.id)
                     .all()
                 )
-                mids = e.member_user_ids(db)
+                mids = e.round_voter_user_ids(db)
                 chosen = {e.selections[u] for u in mids}
                 return [o.id for o in ordered if o.id in chosen]
             finally:
