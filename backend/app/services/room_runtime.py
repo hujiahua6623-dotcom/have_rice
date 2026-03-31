@@ -327,6 +327,12 @@ class RoomRuntime:
         t = asyncio.create_task(coro)
         self._tasks.append(t)
 
+    def _active_member_user_ids(self, db: Session) -> list[int]:
+        """当前在线且仍在房间 membership 中的用户。"""
+        mids = set(self.engine.member_user_ids(db))
+        online_ids = set(self.connections.keys())
+        return sorted(mids & online_ids)
+
     async def _run_countdown_5s(self) -> None:
         gen = self._countdown_gen
         engine = self.engine
@@ -496,7 +502,13 @@ class RoomRuntime:
                     self.engine.ensure_round(db)
                     if self.engine.phase != GamePhase.selecting:
                         return False
-                    return self.engine.all_ready(db)
+                    active_ids = self._active_member_user_ids(db)
+                    if not active_ids:
+                        return False
+                    return all(
+                        uid in self.engine.selections and uid in self.engine.confirmed
+                        for uid in active_ids
+                    )
                 finally:
                     db.close()
 
@@ -645,7 +657,11 @@ class RoomRuntime:
                 elif m == "confirm":
                     err = e.handle_confirm(db, user_id)
                     if not err:
-                        need_countdown = e.all_ready(db)
+                        active_ids = self._active_member_user_ids(db)
+                        if active_ids:
+                            need_countdown = all(
+                                uid in e.selections and uid in e.confirmed for uid in active_ids
+                            )
                 elif m == "cancel":
                     ph_before = e.phase
                     err = e.handle_cancel(db, user_id)
